@@ -1,19 +1,32 @@
 import torch
 from MyData import MyDataset
-from torch.utils.data import DataLoader
-from net_basic import Model
+from torch.utils.data import DataLoader, random_split, Subset
+# from net_basic import Model as BasicModel
+from net_config import Model as AdvancedModel
 from transformers import AdamW, BertTokenizer
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
+from utils import BERT_MODEL_PATH
 
-writer = SummaryWriter()
+# writer = SummaryWriter()
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EPOCH = 30000 
-LEARNING_RATE = 5e-4
+print(f'we are at device {str(DEVICE)}')
+EPOCH = 3 
+LEARNING_RATE = 2e-5
+BATCH_SIZE = 32
+DATASET_NAME = "imdb" # imdb or ag_news
 
-tokenizer = BertTokenizer.from_pretrained("../model/bert-base-uncased/models--bert-base-uncased/snapshots/86b5e0934494bd15c9632b12f734a8a67f723594")
+tokenizer = BertTokenizer.from_pretrained(BERT_MODEL_PATH)
 
-train_dataset = MyDataset("ag_news_train")
-val_dataset = MyDataset("ag_news_test")
+train_dataset = MyDataset(f"{DATASET_NAME}_train")
+# train_dataset = Subset(train_dataset, range(30000)) # for ag_news training mem saving purposes
+dataset_size = len(train_dataset)
+validation_split = 0.2
+val_size = int(validation_split * dataset_size)
+train_size = dataset_size - val_size
+train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
+
+print(f"train_dataset size: {len(train_dataset)}")
+print(f"val_dataset size: {len(val_dataset)}")
 
 def custom_collate_fn(data):
     texts = [i[0] for i in data] 
@@ -30,19 +43,23 @@ def custom_collate_fn(data):
     return input_ids, attention_mask, token_type_ids, collated_labels
 
 train_loader = DataLoader(dataset=train_dataset,
-                          batch_size=32,
+                          batch_size=BATCH_SIZE,
                           shuffle=True,
                           drop_last=True, # drop the last batch if it is not complete
                           collate_fn=custom_collate_fn)
 val_loader = DataLoader(dataset=val_dataset,
-                          batch_size=32,
+                          batch_size=BATCH_SIZE,
                           shuffle=True,
                           drop_last=True, # drop the last batch if it is not complete
                           collate_fn=custom_collate_fn)
 
+print(f"train_loader size: {len(train_loader)}")
+print(f"val_loader size: {len(val_loader)}")
+
 if __name__ == '__main__':
     print(f"Device: {str(DEVICE)}")
-    model = Model().to(DEVICE)
+    # model = BasicModel().to(DEVICE)
+    model = AdvancedModel().to(DEVICE)
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)  # AdamW optimizer, recommended learning rates are 5e-5, 3e-5, or 2e-5 accordingly
     loss_func = torch.nn.CrossEntropyLoss()  # CrossEntropyLoss
 
@@ -71,7 +88,7 @@ if __name__ == '__main__':
             sum_train_acc = sum_train_acc + acc_train
             
             # logging the training process
-            if i % 5 == 0: # print every 5 batches
+            if i % 25 == 0: # print every 50 batches
                 print(f"training==>epoch:{epoch}, batch:{i}, loss:{loss.item()}, accuracy:{acc_train}")
         
         avg_train_loss = sum_train_loss / len(train_loader)
@@ -96,15 +113,15 @@ if __name__ == '__main__':
         avg_val_acc = sum_val_acc / len(val_loader)
         print(f"validation==>epoch:{epoch},avg_val_loss:{avg_val_loss}, avg_val_acc:{avg_val_acc}")
         
-        # Log metrics to TensorBoard
-        writer.add_scalar("Loss/Train", avg_train_loss, epoch)
-        writer.add_scalar("Loss/Validation", avg_val_loss, epoch)
-        writer.add_scalar("Accuracy/Train", avg_train_acc, epoch)
-        writer.add_scalar("Accuracy/Validation", avg_val_acc, epoch)
+        # # Log metrics to TensorBoard
+        # writer.add_scalar("Loss/Train", avg_train_loss, epoch)
+        # writer.add_scalar("Loss/Validation", avg_val_loss, epoch)
+        # writer.add_scalar("Accuracy/Train", avg_train_acc, epoch)
+        # writer.add_scalar("Accuracy/Validation", avg_val_acc, epoch)
 
         # if avg_val_acc > best_avg_val_acc:
         #     best_avg_val_acc = avg_val_acc
-        torch.save(model.state_dict(), f"../trained_models/params/bert-basic-{epoch}.pth") # save the model at each epoch
+        torch.save(model.state_dict(), f"../trained_models/bert-{DATASET_NAME}-{epoch}.pth") # save the model at each epoch
         print(f"Model saved at epoch {epoch}!!!")
     
-    writer.close()
+    # writer.close()

@@ -1,0 +1,14 @@
+test_dataset size: 7600
+test_loader size: 238
+Test Accuracy: 0.6857
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.64      0.84      0.73      1900
+           1       0.73      0.89      0.80      1900
+           2       0.82      0.30      0.44      1900
+           3       0.65      0.71      0.68      1900
+
+    accuracy                           0.69      7600
+   macro avg       0.71      0.69      0.66      7600
+weighted avg       0.71      0.69      0.66      7600

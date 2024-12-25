@@ -1,9 +1,10 @@
 from transformers import BertModel 
 import torch
+from utils import BERT_MODEL_PATH
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-pretrained = BertModel.from_pretrained("../model/bert-base-uncased/models--bert-base-uncased/snapshots/86b5e0934494bd15c9632b12f734a8a67f723594").to(DEVICE)
+pretrained = BertModel.from_pretrained(BERT_MODEL_PATH).to(DEVICE)
 print(pretrained)
 
 class Model(torch.nn.Module):

@@ -1,10 +1,11 @@
 from transformers import BertModel, BertConfig 
 import torch
+from utils import BERT_MODEL_PATH
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-configuration = BertConfig.from_pretrained("../model/bert-base-uncased/models--bert-base-uncased/snapshots/86b5e0934494bd15c9632b12f734a8a67f723594")
-configuration.max_position_embeddings = 1500  # increase the maximum position embedding to 1500 to accommodate longer sequences in imdb dataset
+configuration = BertConfig.from_pretrained(BERT_MODEL_PATH)
+configuration.max_position_embeddings = 1500  # increase the maximum position embedding to 3000 to accommodate longer sequences in imdb dataset
 print(configuration)
 
 pretrained = BertModel(configuration).to(DEVICE)
