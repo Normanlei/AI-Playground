@@ -61,10 +61,10 @@ if __name__ == '__main__':
         # logging the training process
         if i % 50 == 0:
             # token-level prediction accuracy
-            labels = data['labels'][:, 1:]
-            out = out['logits'].argmax(dim=2)[:, :-1]
+            labels = data['labels'][:, 1:] # omit the first token <s>
+            out = out['logits'].argmax(dim=2)[:, :-1] # omit the last token </s>
 
-            select = labels != 0
+            select = labels != 0 # filter out the padding tokens
             labels = labels[select]
             out = out[select]
             del select
