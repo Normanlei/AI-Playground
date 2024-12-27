@@ -5,6 +5,8 @@ from MyData import MyDataset
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from torch.utils.data import DataLoader, Subset
 import random
+from tensorboardX import SummaryWriter
+from torch.cuda.amp import GradScaler,autocast
 
 dataset = MyDataset()
 # Define a random range
@@ -20,6 +22,8 @@ EPOCH = 2
 LEARNING_RATE = 5e-5
 MODEL_PATH = '../model/gpt2-chinese-cluecorpussmall/models--uer--gpt2-chinese-cluecorpussmall/snapshots/c2c0249d8a2731f269414cc3b22dff021f8e07a3'
 BATCH_SIZE = 10
+writer = SummaryWriter() # tensorboard writer
+scaler = GradScaler() # mixed precision training
 
 model = AutoModelForCausalLM.from_pretrained(MODEL_PATH)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
@@ -51,17 +55,22 @@ if __name__ == '__main__':
         for i, data in enumerate(train_loader):
             for k in data.keys():
                 data[k] = data[k].to(DEVICE)
-            out = model(**data) # forward pass
+                
+            with autocast(): # mixed precision training
+                out = model(**data)
+                loss = out['loss']
             
-            loss = out['loss'] # gpt2 integrated loss
-
-            loss.backward() # backward propagation
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            scheduler.step()
             
+            # out = model(**data) # forward pass
+            # loss = out['loss'] # gpt2 integrated loss
+            # loss.backward() # backward propagation
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0) # gradient clipping to prevent exploding gradients
-
-            optimizer.step() # update the weights
-            scheduler.step() # update the learning rate
-
+            # optimizer.step() # update the weights
+            # scheduler.step() # update the learning rate
             optimizer.zero_grad() # zero the gradients
             model.zero_grad()
             
