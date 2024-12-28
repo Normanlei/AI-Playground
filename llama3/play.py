@@ -6,7 +6,7 @@ print(f'we are at device {str(DEVICE)}')
 MODEL_NAME = 'meta-llama/Llama-3.2-1B-Instruct'
 
 
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME,torch_dtype="auto",device_map="auto")
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME,torch_dtype="auto",device_map="auto",cache_dir="../model")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
 prompt ="hello, please introduce yourself."
