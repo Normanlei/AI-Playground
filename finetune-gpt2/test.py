@@ -3,7 +3,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'we are at device {str(DEVICE)}')
-MODEL_PARAM_PATH = f"../trained_models/gpt2-chinese-1.pth"  # Path to the saved model parameters
+MODEL_PARAM_PATH = f"../trained_models/gpt2-chinese-4.pt"  # Path to the saved model parameters
 MODEL_PATH = '../model/gpt2-chinese-cluecorpussmall/models--uer--gpt2-chinese-cluecorpussmall/snapshots/c2c0249d8a2731f269414cc3b22dff021f8e07a3'
 
 
