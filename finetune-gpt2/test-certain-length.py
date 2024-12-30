@@ -3,7 +3,7 @@ import torch
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'we are at device {str(DEVICE)}')
-MODEL_PARAM_PATH = f"../trained_models/gpt2-chinese-4.pth"  # Path to the saved model parameters
+MODEL_PARAM_PATH = f"../trained_models/gpt2-chinese-4.pt"  # Path to the saved model parameters
 MODEL_PATH = '../model/gpt2-chinese-cluecorpussmall/models--uer--gpt2-chinese-cluecorpussmall/snapshots/c2c0249d8a2731f269414cc3b22dff021f8e07a3'
 
 
@@ -41,10 +41,8 @@ def generate(text,row,col):
         c = data["input_ids"].shape[1] / (col+1)
         if c %1 ==0:
             if c%2==0:
-                #在偶数位添加句号
                 out[:,0] = tokenizer.get_vocab()["."]
             else:
-                #在奇数位添加逗号
                 out[:,0] = tokenizer.get_vocab()[","]
 
         data["input_ids"] = torch.cat([data["input_ids"],out],dim=1)
@@ -57,7 +55,7 @@ def generate(text,row,col):
         # Recursively call the function to generate the next token
         return generate_loop(data)
 
-    data = tokenizer.batch_encode_plus([text],return_tensors="pt")
+    data = tokenizer.batch_encode_plus([text],return_tensors="pt").to(DEVICE)
     data["input_ids"] = data["input_ids"][:,:-1]
     data["attention_mask"] = torch.ones_like(data["input_ids"])
     data["token_type_ids"] = torch.ones_like(data["input_ids"])
@@ -65,7 +63,7 @@ def generate(text,row,col):
 
     data = generate_loop(data)
 
-    print(tokenizer.decode(data["input_ids"][i]))
+    print(tokenizer.decode(data["input_ids"][0], skip_special_tokens=True))
 
 if __name__ == '__main__':
     generate("白",row=4,col=5)
