@@ -1,0 +1,9 @@
+# also support directly thru llamafactory webui
+model_name_or_path: '<base_model_path>'
+adapter_name_or_path:'<lora_adapter_path>'
+template: llama3
+finetuning_type: lora
+export_dir: '<export_dir_path>'
+export_size: 4 # the file shard size (in GB) of the exported model
+export_device: cuda
+export_legacy_format: false # export in new format (recommended)
