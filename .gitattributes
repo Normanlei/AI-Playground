@@ -1,2 +1,0 @@
-trained_models/gpt2-chinese-4.pt filter=lfs diff=lfs merge=lfs -text
-trained_models/Llama-3-8B-Instruct/** filter=lfs diff=lfs merge=lfs -text
